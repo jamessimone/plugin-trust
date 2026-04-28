@@ -16,6 +16,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { SfError } from '@salesforce/core';
 
 import { ALLOW_LIST_FILENAME } from './constants.js';
 
@@ -30,15 +31,21 @@ export const getExistingAllowList = async (
   const allowListPath = path.join(dir, ALLOW_LIST_FILENAME);
   let existingAllowList: string[] = [];
   try {
-    const content = ((await fs.promises.readFile(allowListPath)) ?? '[]').toString();
-    existingAllowList = JSON.parse(content) as string[];
+    const content = (await fs.promises.readFile(allowListPath)).toString();
+    const parsed: unknown = JSON.parse(content);
+    if (!Array.isArray(parsed) || parsed.find((e) => typeof e !== 'string')) {
+      throw new SfError(`${ALLOW_LIST_FILENAME} must contain a JSON array of strings.`);
+    }
+    existingAllowList = parsed as string[];
   } catch (err) {
-    if (!(err instanceof Error) || !('code' in err) || err.code !== 'ENOENT') {
+    if (err instanceof SyntaxError) {
+      throw new SfError(err.message);
+    } else if (!(err instanceof Error) || !('code' in err) || err.code !== 'ENOENT') {
       throw err;
     }
   }
   const persistAllowList = async (allowList: string[]): Promise<void> => {
-    await fs.promises.writeFile(allowListPath, JSON.stringify(allowList));
+    await fs.promises.writeFile(allowListPath, JSON.stringify(allowList, null, 2));
   };
   return { existingAllowList, persistAllowList };
 };

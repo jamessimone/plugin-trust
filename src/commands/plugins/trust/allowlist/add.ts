@@ -46,8 +46,9 @@ export class AllowListAdd extends SfCommand<AllowListResult> {
       results.push({ Plugin: name, Status: shouldAddPlugin ? 'added' : 'skipped' });
     }
 
-    if (results.find((result) => result.Status === 'added')) {
-      await persistAllowList(existingAllowList);
+    const newNames = results.filter((r) => r.Status === 'added').map((r) => r.Plugin);
+    if (newNames.length > 0) {
+      await persistAllowList([...existingAllowList, ...newNames]);
     }
 
     this.table({

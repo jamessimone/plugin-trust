@@ -20,6 +20,7 @@ import sinon from 'sinon';
 
 import { Config } from '@oclif/core';
 import { SfCommand } from '@salesforce/sf-plugins-core';
+import { SfError } from '@salesforce/core';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { TestContext } from '@salesforce/core/testSetup';
 
@@ -84,14 +85,34 @@ describe('plugins trust allowlist list', () => {
     expect(logStub.args[0][0]).to.contain('No plugins');
   });
 
-  it('logs a message and returns empty array when file content is null', async () => {
-    readFileStub.resolves(null);
-    const logStub = $$.SANDBOX.stub(SfCommand.prototype, 'log');
+  it('throws SfError when file content is not JSON array', async () => {
+    readFileStub.resolves('{}');
     $$.SANDBOX.stub(SfCommand.prototype, 'table');
 
-    const result = await new AllowListList([], config).run();
+    let err: SfError = new SfError('');
+    try {
+      await new AllowListList([], config).run();
+    } catch (ex) {
+      err = ex as SfError;
+    }
 
-    expect(result).to.deep.equal([]);
-    expect(logStub.calledOnce).to.eq(true);
+    expect(err.message).to.eq('unsignedPluginAllowList.json must contain a JSON array of strings.');
+  });
+
+  it('throws SfError when JSON.parse throws SyntaxError', async () => {
+    readFileStub.resolves('[]');
+    const parseStub = stubMethod(sandbox, JSON, 'parse');
+    parseStub.returns(new SyntaxError('Parse error'));
+    $$.SANDBOX.stub(SfCommand.prototype, 'table');
+
+    let err: SfError = new SfError('');
+    try {
+      await new AllowListList([], config).run();
+    } catch (ex) {
+      err = ex as SfError;
+    }
+
+    expect(err.message).to.eq('unsignedPluginAllowList.json must contain a JSON array of strings.');
+    parseStub.restore();
   });
 });

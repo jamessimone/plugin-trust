@@ -69,7 +69,7 @@ describe('plugins trust allowlist remove', () => {
 
     expect(writeFileStub.calledOnce).to.eq(true);
     expect(writeFileStub.args[0][0]).to.contain(ALLOW_LIST_FILENAME);
-    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['otherpackage']));
+    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['otherpackage'], null, 2));
     expect(tableStub.args[0][0]).to.deep.eq({ data: [{ Plugin: 'somepackagename', Status: 'removed' }] });
   });
 
@@ -92,7 +92,7 @@ describe('plugins trust allowlist remove', () => {
 
     expect(writeFileStub.calledOnce).to.eq(true);
     expect(writeFileStub.args[0][0]).to.contain(ALLOW_LIST_FILENAME);
-    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['anotherexisting']));
+    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['anotherexisting'], null, 2));
     expect(tableStub.args[0][0]).to.deep.eq({
       data: [
         { Plugin: existingPackage, Status: 'removed' },

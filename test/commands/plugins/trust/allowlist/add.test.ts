@@ -20,6 +20,7 @@ import sinon from 'sinon';
 
 import { Config } from '@oclif/core';
 import { SfCommand } from '@salesforce/sf-plugins-core';
+import { SfError } from '@salesforce/core';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { TestContext } from '@salesforce/core/testSetup';
 
@@ -58,17 +59,19 @@ describe('plugins trust allowlist add', () => {
 
     expect(writeFileStub.calledOnce).to.eq(true);
     expect(writeFileStub.args[0][0]).to.contain(ALLOW_LIST_FILENAME);
-    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['somepackagename']));
+    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['somepackagename'], null, 2));
   });
 
   it('adds plugin to allowlist even when no file content', async () => {
-    readFileStub.resolves(null);
+    const err = Error('ENOENT: no such file or directory') as NodeJS.ErrnoException;
+    err.code = 'ENOENT';
+    readFileStub.rejects(err);
     const tableStub = $$.SANDBOX.stub(SfCommand.prototype, 'table');
 
     await new AllowListAdd(['--name', 'somepackagename'], config).run();
     expect(writeFileStub.calledOnce).to.eq(true);
     expect(writeFileStub.args[0][0]).to.contain(ALLOW_LIST_FILENAME);
-    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['somepackagename']));
+    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['somepackagename'], null, 2));
     expect(tableStub.calledOnce).to.eq(true);
     expect(tableStub.args[0][0]).to.deep.eq({ data: [{ Plugin: 'somepackagename', Status: 'added' }] });
   });
@@ -91,7 +94,7 @@ describe('plugins trust allowlist add', () => {
 
     expect(writeFileStub.calledOnce).to.eq(true);
     expect(writeFileStub.args[0][0]).to.contain(ALLOW_LIST_FILENAME);
-    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify([existingPackage, 'otherpackagename']));
+    expect(writeFileStub.args[0][1]).to.eq(JSON.stringify([existingPackage, 'otherpackagename'], null, 2));
     expect(tableStub.calledOnce).to.eq(true);
     expect(tableStub.args[0][0]).to.deep.eq({
       data: [
@@ -99,5 +102,33 @@ describe('plugins trust allowlist add', () => {
         { Plugin: existingPackage, Status: 'skipped' },
       ],
     });
+  });
+
+  it('reports error when allowlist is malformed JSON', async () => {
+    readFileStub.resolves('{}');
+
+    let err: SfError = new SfError('');
+    try {
+      await new AllowListAdd(['--name', 'otherpackagename', '--name', 'someName'], config).run();
+    } catch (ex) {
+      err = ex as SfError;
+    }
+
+    expect(err.message).to.eq('unsignedPluginAllowList.json must contain a JSON array of strings.');
+  });
+
+  it('reports error when writing allowlist back to disk fails', async () => {
+    readFileStub.resolves('["somePlugin"]');
+    const axErr = Error('EACCES: permission denied, access "your/file/path"') as NodeJS.ErrnoException;
+    axErr.code = 'EACCES';
+    writeFileStub.rejects(axErr);
+
+    let err: Error = new SfError('Message');
+    try {
+      await new AllowListAdd(['--name', 'otherpackagename', '--name', 'someName'], config).run();
+    } catch (ex) {
+      err = ex as SfError;
+    }
+    expect(err.message).to.eq(axErr.message);
   });
 });
