@@ -14,4 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * @description Plugins either have to be digitally signed & verified in order to be installed without being prompted, _or_ you can opt into the unsigned allowlist,
+which gets saved to this filename within the CLI's local install folder. **This file name should not be updated**, because that would in turn
+lead to unspecified behavior(s) downstream
+ */
 export const ALLOW_LIST_FILENAME = 'unsignedPluginAllowList.json';

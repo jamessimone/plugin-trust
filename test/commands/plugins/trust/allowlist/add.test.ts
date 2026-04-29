@@ -82,7 +82,9 @@ describe('plugins trust allowlist add', () => {
 
     await new AllowListAdd(['--name', 'somepackagename'], config).run();
 
-    expect(tableStub.args[0][0]).to.deep.eq({ data: [{ Plugin: 'somepackagename', Status: 'skipped' }] });
+    expect(tableStub.args[0][0]).to.deep.eq({
+      data: [{ Plugin: 'somepackagename', Reason: 'already within allowlist', Status: 'skipped' }],
+    });
   });
 
   it('adds plugin to allowlist and skips plugin already added', async () => {
@@ -99,7 +101,7 @@ describe('plugins trust allowlist add', () => {
     expect(tableStub.args[0][0]).to.deep.eq({
       data: [
         { Plugin: 'otherpackagename', Status: 'added' },
-        { Plugin: existingPackage, Status: 'skipped' },
+        { Plugin: existingPackage, Reason: 'already within allowlist', Status: 'skipped' },
       ],
     });
   });

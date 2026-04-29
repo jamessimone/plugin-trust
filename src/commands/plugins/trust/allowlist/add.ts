@@ -44,9 +44,11 @@ export class AllowListAdd extends SfCommand<AllowListResult> {
 
     for (const name of flags.name) {
       const shouldAddPlugin = !existingAllowList.includes(name);
-      results.push({ Plugin: name, Status: shouldAddPlugin ? 'added' : 'skipped' });
       if (shouldAddPlugin) {
         addedPlugins.push(name);
+        results.push({ Plugin: name, Status: 'added' });
+      } else {
+        results.push({ Plugin: name, Status: 'skipped', Reason: 'already within allowlist' });
       }
     }
 

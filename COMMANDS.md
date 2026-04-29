@@ -1,9 +1,36 @@
 ## Commands
 
+validate a digital signature for a npm package and interact with the allowlist for unsigned packages
+
+- [`sf plugins trust verify`](#sf-plugins-trust-verify)
 - [`sf plugins trust allowlist add`](#sf-plugins-trust-allowlist-add)
 - [`sf plugins trust allowlist list`](#sf-plugins-trust-allowlist-list)
 - [`sf plugins trust allowlist remove`](#sf-plugins-trust-allowlist-remove)
-- [`sf plugins trust verify`](#sf-plugins-trust-verify)
+
+## `sfdx plugins:trust:verify -n <string> [-r <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
+```USAGE
+  $ sfdx plugins:trust:verify -n <string> [-r <string>] [--json] [--loglevel
+  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+
+OPTIONS
+  -n, --npm=npm                                                                     (required) Specify the npm
+                                                                                    name. This can include a
+                                                                                    tag/version
+
+  -r, --registry=registry                                                           The registry name. the
+                                                                                    behavior is the same as npm
+
+  --json                                                                            format output as json
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging
+                                                                                    level for this command
+                                                                                    invocation
+
+EXAMPLES
+  sfdx plugins:trust:verify --npm @scope/npmName --registry https://npm.pkg.github.com
+  sfdx plugins:trust:verify --npm @scope/npmName
+```
 
 ## `sf plugins trust allowlist add`
 
@@ -80,29 +107,4 @@ EXAMPLES
   sf plugins trust allowlist remove --name @scope/my-plugin
 
   sf plugins trust allowlist remove --name @scope/my-plugin --name another-plugin
-```
-
-## `sfdx plugins:trust:verify -n <string> [-r <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
-
-```USAGE
-  $ sfdx plugins:trust:verify -n <string> [-r <string>] [--json] [--loglevel
-  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
-
-OPTIONS
-  -n, --npm=npm                                                                     (required) Specify the npm
-                                                                                    name. This can include a
-                                                                                    tag/version
-
-  -r, --registry=registry                                                           The registry name. the
-                                                                                    behavior is the same as npm
-
-  --json                                                                            format output as json
-
-  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging
-                                                                                    level for this command
-                                                                                    invocation
-
-EXAMPLES
-  sfdx plugins:trust:verify --npm @scope/npmName --registry https://npm.pkg.github.com
-  sfdx plugins:trust:verify --npm @scope/npmName
 ```

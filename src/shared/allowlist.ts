@@ -23,6 +23,7 @@ import { ALLOW_LIST_FILENAME } from './constants.js';
 export type AllowListResult = Array<{
   Plugin: string;
   Status?: 'added' | 'removed' | 'skipped';
+  Reason?: string;
 }>;
 
 export const getExistingAllowList = async (
