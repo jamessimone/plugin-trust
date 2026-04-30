@@ -32,6 +32,7 @@ describe('plugins trust allowlist add', () => {
   const $$ = new TestContext();
   let writeFileStub: sinon.SinonStub;
   let readFileStub: sinon.SinonStub;
+  let mkdirStub: sinon.SinonStub;
   const config = new Config({ root: import.meta.url });
 
   before(async () => {
@@ -42,12 +43,14 @@ describe('plugins trust allowlist add', () => {
     sandbox = sinon.createSandbox();
     writeFileStub = stubMethod(sandbox, fs.promises, 'writeFile').resolves();
     readFileStub = stubMethod(sandbox, fs.promises, 'readFile');
+    mkdirStub = stubMethod(sandbox, fs.promises, 'mkdir').resolves();
   });
 
   afterEach(() => {
     $$.restore();
     writeFileStub.restore();
     readFileStub.restore();
+    mkdirStub.restore();
   });
 
   it('creates file successfully when ENOENT error is thrown', async () => {
@@ -60,6 +63,7 @@ describe('plugins trust allowlist add', () => {
     expect(writeFileStub.calledOnce).to.eq(true);
     expect(writeFileStub.args[0][0]).to.contain(ALLOW_LIST_FILENAME);
     expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['somepackagename'], null, 2));
+    expect(mkdirStub.calledOnce).to.eq(true);
   });
 
   it('adds plugin to allowlist even when no file content', async () => {
@@ -74,6 +78,7 @@ describe('plugins trust allowlist add', () => {
     expect(writeFileStub.args[0][1]).to.eq(JSON.stringify(['somepackagename'], null, 2));
     expect(tableStub.calledOnce).to.eq(true);
     expect(tableStub.args[0][0]).to.deep.eq({ data: [{ Plugin: 'somepackagename', Status: 'added' }] });
+    expect(mkdirStub.calledOnce).to.eq(true);
   });
 
   it('skips plugin already part of allowlist', async () => {

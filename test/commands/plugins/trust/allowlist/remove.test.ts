@@ -50,6 +50,7 @@ describe('plugins trust allowlist remove', () => {
   });
 
   it('skips removal when the allow list file does not exist', async () => {
+    const mkdirStub = stubMethod(sandbox, fs.promises, 'mkdir').resolves();
     const err = Error('ENOENT: no such file or directory') as NodeJS.ErrnoException;
     err.code = 'ENOENT';
     readFileStub.rejects(err);
@@ -58,9 +59,11 @@ describe('plugins trust allowlist remove', () => {
     await new AllowListRemove(['--name', 'somepackagename'], config).run();
 
     expect(writeFileStub.called).to.eq(false);
+    expect(mkdirStub.calledOnce).to.eq(true);
     expect(tableStub.args[0][0]).to.deep.eq({
       data: [{ Plugin: 'somepackagename', Status: 'skipped', Reason: 'not in allowlist' }],
     });
+    mkdirStub.restore();
   });
 
   it('removes a plugin present in the allow list', async () => {

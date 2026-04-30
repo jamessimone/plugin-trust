@@ -27,17 +27,18 @@ export type AllowListResult = Array<{
 }>;
 
 export class AllowList {
-  readonly #dir: string;
+  readonly #allowListPath: string;
+  readonly #baseDir: string;
 
   public constructor(dir: string) {
-    this.#dir = dir;
+    this.#allowListPath = path.join(dir, ALLOW_LIST_FILENAME);
+    this.#baseDir = dir;
   }
 
   public async get(): Promise<string[]> {
-    const allowListPath = path.join(this.#dir, ALLOW_LIST_FILENAME);
     let existingAllowList: string[] = [];
     try {
-      const content = (await fs.promises.readFile(allowListPath)).toString();
+      const content = (await fs.promises.readFile(this.#allowListPath)).toString();
       const parsed: unknown = JSON.parse(content);
       if (!Array.isArray(parsed) || parsed.find((e) => typeof e !== 'string')) {
         throw new SfError(`${ALLOW_LIST_FILENAME} must contain a JSON array of strings.`);
@@ -46,7 +47,13 @@ export class AllowList {
     } catch (err) {
       if (err instanceof SyntaxError) {
         throw new SfError(err.message);
-      } else if (!(err instanceof Error) || !('code' in err) || err.code !== 'ENOENT') {
+      } else if (err instanceof Error) {
+        if (!('code' in err) || err.code !== 'ENOENT') {
+          throw err;
+        } else {
+          await this.#createAllowlistPath();
+        }
+      } else {
         throw err;
       }
     }
@@ -54,7 +61,15 @@ export class AllowList {
   }
 
   public async save(allowList: string[]): Promise<void> {
-    const allowListPath = path.join(this.#dir, ALLOW_LIST_FILENAME);
-    await fs.promises.writeFile(allowListPath, JSON.stringify(allowList, null, 2));
+    await fs.promises.writeFile(this.#allowListPath, JSON.stringify(allowList, null, 2));
+  }
+
+  async #createAllowlistPath(): Promise<void> {
+    try {
+      await fs.promises.stat(this.#baseDir);
+    } catch (_) {
+      // we will try exactly once to blindly create the full directory. any error here will get bubbled back up to the caller
+      await fs.promises.mkdir(this.#baseDir, { recursive: true });
+    }
   }
 }

@@ -72,6 +72,8 @@ describe('plugins trust allowlist list', () => {
   });
 
   it('logs a message and returns empty array when the allow list file does not exist', async () => {
+    const mkdirStub = stubMethod(sandbox, fs.promises, 'mkdir');
+    mkdirStub.resolves();
     const err = Error('ENOENT: no such file or directory') as NodeJS.ErrnoException;
     err.code = 'ENOENT';
     readFileStub.rejects(err);
@@ -82,7 +84,9 @@ describe('plugins trust allowlist list', () => {
 
     expect(result).to.deep.equal([]);
     expect(logStub.calledOnce).to.eq(true);
+    expect(mkdirStub.calledOnce).to.eq(true);
     expect(logStub.args[0][0]).to.contain('No plugins');
+    mkdirStub.restore();
   });
 
   it('throws SfError when file content is not JSON array', async () => {
