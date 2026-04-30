@@ -7,7 +7,7 @@ validate a digital signature for a npm package and interact with the allowlist f
 - [`sf plugins trust allowlist list`](#sf-plugins-trust-allowlist-list)
 - [`sf plugins trust allowlist remove`](#sf-plugins-trust-allowlist-remove)
 
-## `sfdx plugins:trust:verify -n <string> [-r <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sf plugins trust verify`
 
 ```USAGE
   $ sfdx plugins:trust:verify -n <string> [-r <string>] [--json] [--loglevel

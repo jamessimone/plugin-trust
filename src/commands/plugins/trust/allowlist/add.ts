@@ -17,7 +17,7 @@
 import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
 import { Messages } from '@salesforce/core';
 
-import { getExistingAllowList, type AllowListResult } from '../../../../shared/allowlist.js';
+import { AllowList, type AllowListResult } from '../../../../shared/allowlist.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/plugin-trust', 'allowlist.add');
@@ -38,7 +38,8 @@ export class AllowListAdd extends SfCommand<AllowListResult> {
 
   public async run(): Promise<AllowListResult> {
     const { flags } = await this.parse(AllowListAdd);
-    const { existingAllowList, persistAllowList } = await getExistingAllowList(this.config.configDir);
+    const allowList = new AllowList(this.config.configDir);
+    const existingAllowList = await allowList.get();
     const results: AllowListResult = [];
     const addedPlugins: string[] = [];
 
@@ -53,7 +54,7 @@ export class AllowListAdd extends SfCommand<AllowListResult> {
     }
 
     if (addedPlugins.length > 0) {
-      await persistAllowList([...existingAllowList, ...addedPlugins]);
+      await allowList.save([...existingAllowList, ...addedPlugins]);
     }
 
     this.table({

@@ -17,7 +17,7 @@
 import { SfCommand } from '@salesforce/sf-plugins-core';
 import { Messages } from '@salesforce/core';
 
-import { getExistingAllowList, type AllowListResult } from '../../../../shared/allowlist.js';
+import { AllowList, type AllowListResult } from '../../../../shared/allowlist.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/plugin-trust', 'allowlist.list');
@@ -28,7 +28,7 @@ export class AllowListList extends SfCommand<AllowListResult> {
   public static readonly examples = messages.getMessages('examples');
 
   public async run(): Promise<AllowListResult> {
-    const { existingAllowList } = await getExistingAllowList(this.config.configDir);
+    const existingAllowList = await new AllowList(this.config.configDir).get();
 
     if (existingAllowList.length === 0) {
       this.log(messages.getMessage('NoPluginsAllowListed'));

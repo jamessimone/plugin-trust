@@ -58,7 +58,9 @@ describe('plugins trust allowlist remove', () => {
     await new AllowListRemove(['--name', 'somepackagename'], config).run();
 
     expect(writeFileStub.called).to.eq(false);
-    expect(tableStub.args[0][0]).to.deep.eq({ data: [{ Plugin: 'somepackagename', Status: 'skipped' }] });
+    expect(tableStub.args[0][0]).to.deep.eq({
+      data: [{ Plugin: 'somepackagename', Status: 'skipped', Reason: 'not in allowlist' }],
+    });
   });
 
   it('removes a plugin present in the allow list', async () => {
@@ -80,7 +82,9 @@ describe('plugins trust allowlist remove', () => {
     await new AllowListRemove(['--name', 'somepackagename'], config).run();
 
     expect(writeFileStub.called).to.eq(false);
-    expect(tableStub.args[0][0]).to.deep.eq({ data: [{ Plugin: 'somepackagename', Status: 'skipped' }] });
+    expect(tableStub.args[0][0]).to.deep.eq({
+      data: [{ Plugin: 'somepackagename', Status: 'skipped', Reason: 'not in allowlist' }],
+    });
   });
 
   it('removes present plugins and skips absent ones in a single invocation', async () => {
@@ -96,7 +100,7 @@ describe('plugins trust allowlist remove', () => {
     expect(tableStub.args[0][0]).to.deep.eq({
       data: [
         { Plugin: existingPackage, Status: 'removed' },
-        { Plugin: 'notpresent', Status: 'skipped' },
+        { Plugin: 'notpresent', Status: 'skipped', Reason: 'not in allowlist' },
       ],
     });
   });

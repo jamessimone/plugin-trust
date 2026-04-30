@@ -17,7 +17,7 @@
 import { SfCommand, Flags } from '@salesforce/sf-plugins-core';
 import { Messages } from '@salesforce/core';
 
-import { getExistingAllowList, type AllowListResult } from '../../../../shared/allowlist.js';
+import { AllowList, type AllowListResult } from '../../../../shared/allowlist.js';
 
 Messages.importMessagesDirectoryFromMetaUrl(import.meta.url);
 const messages = Messages.loadMessages('@salesforce/plugin-trust', 'allowlist.remove');
@@ -38,7 +38,8 @@ export class AllowListRemove extends SfCommand<AllowListResult> {
 
   public async run(): Promise<AllowListResult> {
     const { flags } = await this.parse(AllowListRemove);
-    const { existingAllowList, persistAllowList } = await getExistingAllowList(this.config.configDir);
+    const allowList = new AllowList(this.config.configDir);
+    const existingAllowList = await allowList.get();
 
     const results: AllowListResult = [];
     const pluginsToRemove = new Set<string>();
@@ -47,12 +48,12 @@ export class AllowListRemove extends SfCommand<AllowListResult> {
         pluginsToRemove.add(name);
         results.push({ Plugin: name, Status: 'removed' });
       } else {
-        results.push({ Plugin: name, Status: 'skipped' });
+        results.push({ Plugin: name, Status: 'skipped', Reason: 'not in allowlist' });
       }
     }
 
     if (pluginsToRemove.size > 0) {
-      await persistAllowList(existingAllowList.filter((plugin) => !pluginsToRemove.has(plugin)));
+      await allowList.save(existingAllowList.filter((plugin) => !pluginsToRemove.has(plugin)));
     }
 
     this.table({
